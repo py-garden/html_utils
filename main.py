@@ -27,6 +27,24 @@ def extract_body_content(html_content: str) -> str:
     print("WARNING could not extract body contents")
     return ""
 
+def add_text_to_header_and_body_of_html(html_content :str, head_text: str, body_text: str) -> str:
+
+    # find the closing head tag and insert the head_text before it
+    head_index = html_content.find("</head>")
+    if head_index != -1:
+        html_content = (
+            html_content[:head_index] + head_text + "\n" + html_content[head_index:]
+        )
+
+    # find the closing body tag and insert the body_text before it
+    body_index = html_content.find("</body>")
+    if body_index != -1:
+        html_content = (
+            html_content[:body_index] + body_text + "\n" + html_content[body_index:]
+        )
+
+    return html_content
+
 BLANK_HTML_FILE = """<!DOCTYPE html>
 <html lang="en">
 <head>
