@@ -1,3 +1,178 @@
+from html import escape
+from html.parser import HTMLParser
+
+HTML_TAGS = {
+    "html",
+    "head",
+    "title",
+    "base",
+    "link",
+    "meta",
+    "style",
+    "script",
+    "noscript",
+    "body",
+    "section",
+    "nav",
+    "article",
+    "aside",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "header",
+    "footer",
+    "address",
+    "main",
+    "p",
+    "hr",
+    "pre",
+    "blockquote",
+    "ol",
+    "ul",
+    "li",
+    "dl",
+    "dt",
+    "dd",
+    "figure",
+    "figcaption",
+    "div",
+    "a",
+    "em",
+    "strong",
+    "small",
+    "s",
+    "cite",
+    "q",
+    "dfn",
+    "abbr",
+    "data",
+    "time",
+    "code",
+    "var",
+    "samp",
+    "kbd",
+    "sub",
+    "sup",
+    "i",
+    "b",
+    "u",
+    "mark",
+    "ruby",
+    "rt",
+    "rp",
+    "bdi",
+    "bdo",
+    "span",
+    "br",
+    "wbr",
+    "ins",
+    "del",
+    "picture",
+    "source",
+    "img",
+    "iframe",
+    "embed",
+    "object",
+    "param",
+    "video",
+    "audio",
+    "track",
+    "map",
+    "area",
+    "table",
+    "caption",
+    "colgroup",
+    "col",
+    "tbody",
+    "thead",
+    "tfoot",
+    "tr",
+    "td",
+    "th",
+    "form",
+    "label",
+    "input",
+    "button",
+    "select",
+    "datalist",
+    "optgroup",
+    "option",
+    "textarea",
+    "output",
+    "progress",
+    "meter",
+    "fieldset",
+    "legend",
+    "details",
+    "summary",
+    "dialog",
+    "canvas",
+    "svg",
+    "math",
+}
+
+
+class EscapeTextInsideCodeTags(HTMLParser):
+    """
+    This class is a html parser which takes in invalid html like this:
+
+    <code>2 < 3 && 5 > 2</code>
+
+    and is able to turn it into this:
+
+    <code>2 &lt; 3 &amp;&amp; 5 &gt; 2</code>
+
+    A dynamic parser is needed in this situation because we need to know when things are and are not tags.
+
+    Additionally it is aware that things like <bloogas> is not a valid html tag.
+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.result = []
+        self.in_code = False  # track if we are inside a <code> block
+
+    def handle_starttag(self, tag, attrs):
+        tag_lower = tag.lower()
+        if tag_lower in HTML_TAGS:
+            attrs_str = " ".join(f'{name}="{value}"' for name, value in attrs)
+            self.result.append(f"<{tag} {attrs_str}>" if attrs_str else f"<{tag}>")
+            if tag_lower == "code":
+                self.in_code = True
+        else:
+            # if not a real html tag, escape it
+            self.result.append(escape(f"<{tag}>"))
+
+    def handle_endtag(self, tag):
+        tag_lower = tag.lower()
+        if tag_lower in HTML_TAGS:
+            self.result.append(f"</{tag}>")
+            if tag_lower == "code":
+                self.in_code = False
+        else:
+            self.result.append(escape(f"</{tag}>"))
+
+    def handle_data(self, data):
+        if self.in_code:
+            self.result.append(escape(data))  # escape code inside <code>
+        else:
+            self.result.append(data)  # normal text
+
+    def get_result(self):
+        return "".join(self.result)
+
+
+def escape_code_tags(html: str) -> str:
+    parser = EscapeTextInsideCodeTags()
+    parser.feed(html)
+    escaped_html = parser.get_result()
+    return escaped_html
+
+
 def escape_html(text: str) -> str:
     """
     Escapes HTML special characters in a string.
