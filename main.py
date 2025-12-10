@@ -1,3 +1,29 @@
+def escape_html(text: str) -> str:
+    """
+    Escapes HTML special characters in a string.
+
+    Characters escaped:
+        &  -> &amp;
+        <  -> &lt;
+        >  -> &gt;
+        "  -> &quot;
+        '  -> &#x27;
+
+    Args:
+        text (str): Input string to escape.
+
+    Returns:
+        str: Escaped string.
+    """
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
+
+
 def extract_header_content(html_content: str) -> str:
     """
     Extracts the content of the <head> tag from the given HTML content.
